@@ -1,0 +1,16 @@
+
+.subTitle{
+    color:rgb(255, 115, 0);
+}
+
+
+.tabDrop{
+    color:rgb(255, 115, 0);
+    border-color: rgb(255, 115, 0);
+    
+}
+.dropDown{
+    background-color:#EBE9E9;
+    color:rgb(255, 115, 0);
+    /* color:rgb(68, 67, 67); */
+}
