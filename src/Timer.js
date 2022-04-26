@@ -33,7 +33,6 @@ function Timer() {
       ); 
     }
   };
-
   const clearTimer = (e) => { 
     setTimer("00:00:00");
     if (Ref.current) clearInterval(Ref.current);
