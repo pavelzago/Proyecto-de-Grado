@@ -1,0 +1,13 @@
+.divEquipos{
+    background-color: rgb(243, 245, 255);
+    border-radius: 10px;
+   
+}
+.divbutton{
+    align-self: center;
+    text-align: center;
+}
+
+.timer{
+    font-weight: bold;
+}

@@ -1,32 +1,8 @@
-import React, { useState} from "react";
-import { Dropdown, DropdownButton } from "react-bootstrap";
+import React from "react";
 import { EqFermentacion } from "./Equipos/EqFermentacion";
-import { EqDestilacion } from "./Equipos/EqDestilacion";
-import { EqDeshidratacion } from "./Equipos/EqDeshidratacion";
+import ImgPlanta from "./Imagenes/PlantaTotal.JPG";
 
-function Equipos(props) {
-  const [component, setComponent] = useState(false);
-  const [dropdown, setDropdown] = useState(false);
-
-  const abrircerrarDrop = () => {
-    setDropdown(!dropdown);
-  };
-
-  const selectDropdown = (variant) => {
-    if (variant === "fer") {
-      setComponent(<EqFermentacion />);
-      console.log("Entre a Fermentación");
-    }
-    if (variant === "des") {
-      setComponent(<EqDestilacion />);
-      console.log("Entre a Destilación");
-    }
-    if (variant === "desh") {
-      setComponent(<EqDeshidratacion />);
-      console.log("Entre a Deshidratracion");
-    }
-  };
-
+function Equipos() {
   return (
     <div>
       <h1 className="mt-3 ms-3 title">Equipos y Procesos</h1>
@@ -34,27 +10,13 @@ function Equipos(props) {
         La producción de Alcohol Carburante a partir de caña, puede englobarse
         en tres sub-procesos que están compuestos por las etapas de
         fermentación, destilación y deshidratación. A continuación información
-        de los equipos de cada sub-proceso:
+        de los equipos de cada sub-proceso y el diagrama esquemático de la planta de producción:
       </p>
-      <DropdownButton
-        className="ms-3 mt-3"
-        variant="btn dropDown fw-bold"
-        title="Equipos"
-        id="input-group-dropdown-1"
-        onToggle={abrircerrarDrop}
-      >
-        <Dropdown.Item onClick={() => selectDropdown("fer")}>
-          Fermentación
-        </Dropdown.Item>
-        <Dropdown.Item onClick={() => selectDropdown("des")}>
-          Destilación
-        </Dropdown.Item>
-        <Dropdown.Item onClick={() => selectDropdown("desh")}>
-          Deshidratación
-        </Dropdown.Item>
-      </DropdownButton>
+      <div className="text-center w-50">
+        <img src={ImgPlanta} className="rounded w-100" alt={ImgPlanta} />
+      </div>
+      <div><EqFermentacion/></div>
 
-      <div>{component}</div>
     </div>
   );
 }

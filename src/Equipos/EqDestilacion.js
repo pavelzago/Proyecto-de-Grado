@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import db from "../FireBase/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { ModalEq } from "../ModalEq";
+import {getFirestore} from "firebase/firestore";
+import app from "../FireBase/firebaseConfig";
+const db = getFirestore(app);
 
 function EqDestilacion(props) {
   const arrayDes = [];
@@ -11,6 +13,7 @@ function EqDestilacion(props) {
     const obtenerDatos = async () => {
       const datos = await getDocs(collection(db, "EquiposDestilacion"));
       datos.forEach((documento) => {
+        console.log(documento);
         setEqDestilacion(documento.data());
       });
     };

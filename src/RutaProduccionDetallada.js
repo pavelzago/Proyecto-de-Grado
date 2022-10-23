@@ -1,56 +1,97 @@
 import React from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { ModalInv } from "./ModalInv";
+import { ModalEq } from "./ModalEq";
+import Accordion from "react-bootstrap/Accordion";
+import { getFirestore } from "firebase/firestore";
+import app from "./FireBase/firebaseConfig";
+import { ModalOP } from "./ModalOP";
+const db = getFirestore(app);
 
-function RutaProduccionDetallada(props) {
-  return (
-    <div>
-        <h1 className="ms-3 mt-3 fs-4 subTitle">Ruta de Producción Detallada</h1>
+class RutaProduccionDetallada extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      listaInv1: [],
+      listaEq1: [],
+      listaOP1: []
+    };
+  }
+
+  componentDidMount() {
+    this.getInventario();
+  }
+  getInventario() {
+    const obtenerDatos = async () => {
+      const datosInv = await getDocs(collection(db, "InvFermentacion"));
+      const datosEq = await getDocs(collection(db, "Equipos"));
+      const datosOP = await getDocs(collection(db, "Actividad"));
+      const listaInv = datosInv.docs.map((doc) => doc.data());
+      const listaEq = datosEq.docs.map((doc) => doc.data());
+      const listaOP = datosOP.docs.map((doc) => doc.data());
+      this.setState({listaInv1: listaInv, listaEq1: listaEq, listaOP1: listaOP});
+      console.log(listaInv);
+      console.log(listaEq);
+      console.log(listaOP);
+    };
+    obtenerDatos();
+  }
+  render() {
+    return (
+      <div>
+        <h4 className="ms-3 mt-3 Titulos">Ruta de Producción Detallada</h4>
         <p className="ms-3 text-start">
-          Enrutamiento detallado de producción de Alcohol Carburante a partir de la información colectada de los modulos
-          de gestión del recurso disponible, orden de trabajo y equipos involucrados: 
+          Enrutamiento detallado de producción de Alcohol Carburante a partir de
+          la información colectada de los modulos de gestión del recurso
+          disponible, orden de trabajo y equipos involucrados:
         </p>
-        <div className="row row-cols-1 row-cols-md-3 g-4">
-          <div className="col">
-            <div className="card">
-              <div className="card-header title fw-bold">
-               Recurso Disponible
-              </div>
-              <div className="card-body">
-                <h5 className="card-title fs-5">Cantidad Materia Prima</h5>
-                <p className="card-text">Capacidad: </p>
-                <p className="card-text">Lote: </p>
-                <a href="www.google.com" className="btn btn-primary">Ver más</a>
-              </div>
-            </div>
-          </div>
-          <div className="col">
-            <div className="card">
-              <div className="card-header title fw-bold">
-                 Orden de Trabajo
-              </div>
-              <div className="card-body">
-                <h5 className="card-title fs-5">Lote de producción #</h5>
-                <p className="card-text">Capacidad: </p>
-                <p className="card-text">Tiempo: </p>
-                <a href="www.google.com" className="btn btn-primary">Ver más</a>
-              </div>
-            </div>
-          </div>
-          <div className="col">
-            <div className="card">
-              <div className="card-header title fw-bold">
-                Equipo Involucrados
-              </div>
-              <div className="card-body">
-                <h5 className="card-title fs-5">Equipo #</h5>
-                <p className="card-text">Capacidad: </p>
-                <p className="card-text">Tiempo: </p>
-                <a href="www.google.com" className="btn btn-primary">Ver más</a>
-              </div>
-            </div>
-          </div>
+        <div>
+          <Accordion defaultActiveKey="0">
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>Inventario</Accordion.Header>
+              <Accordion.Body>
+                {this.state.listaInv1.map((documento) => (
+                  <ModalInv
+                    Tipo={documento.Tipo}
+                    ID={documento.ID}
+                    key={documento.ID}
+                    Referencia={documento.Referencia}
+                    Cantidad={documento.Cantidad}
+                    Estado={documento.Estado}
+                  />
+                ))}
+              </Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="1">
+              <Accordion.Header>Equipos</Accordion.Header>
+              <Accordion.Body>{this.state.listaEq1.map((documento) => (
+                  <ModalEq
+                    Tiempo={documento.Tiempo}
+                    ID={documento.ID}
+                    key={documento.ID}
+                    NombreEquipo={documento.NombreEquipo}
+                    Capacidad={documento.Capacidad}
+                    Estado={documento.Estado}
+                    Referencia={documento.Proceso}
+                  />
+                ))}</Accordion.Body>
+            </Accordion.Item>
+            <Accordion.Item eventKey="2">
+              <Accordion.Header>Orden de producción</Accordion.Header>
+              <Accordion.Body>{this.state.listaOP1.map((documento) => (
+                  <ModalOP
+                    Referencia={documento.ID}
+                    key={documento.ID}
+                    Capacidad={documento.Cantidad}
+                    Estado={documento.Estado}
+                  />
+                ))}</Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export { RutaProduccionDetallada };

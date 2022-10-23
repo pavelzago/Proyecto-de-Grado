@@ -1,11 +1,11 @@
 import React from "react";
 import { Dropdown, DropdownButton } from "react-bootstrap";
 import { InvFermentacion } from "./Inventario/InvFermentacion";
-import { InvDestilacion } from "./Inventario/InvDestilacion";
-import { InvDeshidratacion } from "./Inventario/InvDeshidratacion";
 import { collection, addDoc, getDocs, setDoc, doc} from "firebase/firestore";
-import db from "./FireBase/firebaseConfig";
 import { Modal, Button } from "react-bootstrap";
+import {getFirestore} from "firebase/firestore";
+import app from "./FireBase/firebaseConfig";
+const db = getFirestore(app);
 
 class Inventario extends React.Component {
   constructor() {
@@ -14,7 +14,6 @@ class Inventario extends React.Component {
       value: "",
       tipo: "",
       cantidad: "",
-      component: "",
       Id: "",
       referencia: "",
       dropdown: false,
@@ -46,26 +45,6 @@ class Inventario extends React.Component {
     this.setState({ dropdown: !this.state.dropdown });
   }
 
-  selectDropdown(variant) {
-    if (variant === "fer") {
-      this.setState({
-        selectDrop1: "Fermentacion",
-        component: <InvFermentacion />,
-      });
-    }
-    if (variant === "des") {
-      this.setState({
-        selectDrop1: "Destilacion",
-        component: <InvDestilacion />,
-      });
-    }
-    if (variant === "desh") {
-      this.setState({
-        selectDrop1: "Deshidratacion",
-        component: <InvDeshidratacion />,
-      });
-    }
-  }
 
   async selectTipoMP(variant) {
     if (variant === "Miel") {
@@ -144,9 +123,24 @@ class Inventario extends React.Component {
 
   updateDataMiel(obj){
     setDoc(doc(db, "InvFermentacion", "G1t7WMnJQlBQCm2Xv4wD"), obj)
+    this.savenotification("Miel B");
   }
   updateDataLevadura(obj){
     setDoc(doc(db, "InvFermentacion", "Xi2s4yCOpwzv52X6nzZh"), obj)
+    this.savenotification("Levadura");
+  }
+
+  savenotification(value){
+    console.log(value);
+      const save = async () => {
+        addDoc(collection(db, "Notificaciones"), {
+          ID: "03",
+          Tipo: "Añadir Inventario",
+          IDProceso: value,
+          Description: "Se ha agregado materia prima de "+" "+ value + " "+ "al inventario",
+        });
+    }
+    save();
   }
 
   render() {
@@ -159,24 +153,8 @@ class Inventario extends React.Component {
           fermentación, destilación y deshidratación. A continuación información
           de los recursos disponibles para producción de Alcohol Carburante:
         </p>
-        <DropdownButton
-          className="ms-3 "
-          variant="btn dropDown fw-bold"
-          title={this.state.selectDrop1}
-          id="input-group-dropdown-1"
-          onClick={() => this.abrircerrarDrop()}
-        >
-          <Dropdown.Item onClick={() => this.selectDropdown("fer")}>
-            Fermentación
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => this.selectDropdown("des")}>
-            Destilación
-          </Dropdown.Item>
-          <Dropdown.Item onClick={() => this.selectDropdown("desh")}>
-            Deshidratación
-          </Dropdown.Item>
-        </DropdownButton>
-        <div>{this.state.component}</div>
+        
+        <div><InvFermentacion/></div>
         <button
           onClick={() => this.handleShow()}
           type="button"
@@ -278,7 +256,7 @@ class Inventario extends React.Component {
               Cerrar
             </Button>
             <Button variant="primary" onClick={() => this.saveData()}>
-              +Agregar Inventario
+              Agregar Inventario
             </Button>
           </Modal.Footer>
         </Modal>

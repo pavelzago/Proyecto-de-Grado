@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
-import { collection, getDocs, setDoc, doc } from "firebase/firestore";
-import db from "./FireBase/firebaseConfig";
-import {Timer} from "./Timer";
+import { collection, getDocs, setDoc, doc, addDoc } from "firebase/firestore";
+import { Timer } from "./Timer";
+import { getFirestore } from "firebase/firestore";
+import { MdOutlineRefresh } from "react-icons/md";
 
-function Cronograma(props) {
+import app from "./FireBase/firebaseConfig";
+import "./Cronograma.css";
+const db = getFirestore(app);
+
+function Cronograma() {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const [CantMielB, setCantMielB] = useState(false);
+  const [Counter, setCounter]=useState(1);
   const [CantLev, setLev] = useState(false);
-  const [value, setValue] = useState(false);
+  const [value, setValue] = useState(false); //Valor del input que ingresa el usuario
   const [tipo, setTipo] = useState(false);
   const [ID, setID] = useState(false);
   const [referencia, setReferencia] = useState(false);
@@ -18,28 +24,118 @@ function Cronograma(props) {
   const [IDLev, setIDLev] = useState(false);
   const [referenciaLev, setReferenciaLev] = useState(false);
   const [estadoEqNoDis, setEstadoEqNoDis] = useState(false);
-  
+  const [estadoAct, setEstadoAct] = useState(false);
+  const [capacidadAC, setcapacidadAC] = useState();
+  const [listaActividadEspera, setlistaActividadEspera] = useState([]);
+  const [listaActividadProgreso, setlistaActividadProgreso] = useState([]);
+  const [listaActividadCompletado, setlistaActividadCompletado] = useState([]);
+  const [objectprogress, setobjectprogress] =useState({});
+  const [IdDocumentFire, setIdDocumentFire]=useState();
+  const [tiempo, settiempo]=useState(false); 
+
+  useEffect(() => {
+    //  console.log(props.Timer);
+    getData();
+    ordenesProduccion();
+  }, []);
+
+  useEffect(() => {
+    console.log(IdDocumentFire);
+    console.log(objectprogress);
+    
+    if(tiempo === true){
+      setprogresstocomplete(IdDocumentFire, objectprogress);
+    }
+  }, [IdDocumentFire, objectprogress]);
 
   const handleChange = (event) => {
     setValue(event.target.value);
-    console.log(event.target.value);
+  };
+  //Metodo para cambiar estado de equipos cuando se acabe el timer
+  const handleSearch = (e) => {
+    ActuaEquipos("Disponible");
+    settiempo(true);
+    console.log("Entre");
+    console.log(IdDocumentFire);
   };
 
+  const getData = () => {
+    var mielB = 0;
+    var lev = 0;
+    const obtenerDatos = async () => {
+      try {
+        const datosInv = await getDocs(collection(db, "InvFermentacion"));
+        //En este metodo se inicializan las variables con las cantidades de la base de datos
+        datosInv.forEach((documento) => {
+          if (documento.data().Tipo === "Miel B") {
+            mielB = documento.data().Cantidad;
+            console.log(mielB);
+          } else if (documento.data().Tipo === "Levadura") {
+            lev = documento.data().Cantidad;
+          }
+        });
+        CapacidadAlcoholcarburante(mielB, lev);
+      } catch (error) {}
+    };
+    obtenerDatos();
+  };
+
+  const ordenesProduccion = () => {
+    const obtenerDatos = async () => {
+      const listaEspera = [];
+      const listaProgreso = [];
+      const listaCompletado = [];
+
+      try {
+        const datosActividad = await getDocs(collection(db, "Actividad"));
+        console.log(datosActividad.size)
+        datosActividad.docs.map((doc) => {
+          
+          if (doc.data().Estado === "En Espera") {
+            listaEspera.push(doc.data());
+            console.log(listaEspera.length)
+
+          } else if (doc.data().Estado === "En Progreso") {
+              listaProgreso.push(doc.data());
+                let idgeneral=doc.id;
+                setobjectprogress({
+                  Cantidad: doc.data().Cantidad,
+                  Estado: "Completado",
+                  ID:doc.data().ID,
+                })
+               setIdDocumentFire(idgeneral);
+            
+          } else if (doc.data().Estado === "Completado") {
+            listaCompletado.push(doc.data());
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+      setlistaActividadEspera(listaEspera);
+      setlistaActividadProgreso(listaProgreso);
+      setlistaActividadCompletado(listaCompletado);
+
+    };
+    obtenerDatos();
+  };
+    //Metodo para cambiar estado de progress a complete
+  const setprogresstocomplete = (id, obje) =>{
+    setDoc(doc(db, "Actividad", id), obje);
+  }
+
   const saveData = () => {
-    handleShow();
+
     const obtenerDatos = async () => {
       const datosInv = await getDocs(collection(db, "InvFermentacion"));
       const datosEq = await getDocs(collection(db, "Equipos"));
 
       datosEq.forEach((documento) => {
-        console.log(documento.data().Estado);
         if (documento.data().Estado === "No Disponible") {
           setEstadoEqNoDis(documento.data().Estado);
         }
       });
-
       datosInv.forEach((documento) => {
-        console.log(documento.data().Cantidad);
         if (documento.data().Tipo === "Miel B") {
           setCantMielB(documento.data().Cantidad);
           setTipo(documento.data().Tipo);
@@ -54,31 +150,83 @@ function Cronograma(props) {
       });
     };
     obtenerDatos();
+    handleShow();
+  };
+
+  const saveActividad = (estado) => {
+    var id=Counter+1;
+    setCounter(id);
+    const save = async () => {
+      addDoc(collection(db, "Actividad"), {
+        Cantidad: value,
+        Estado: estado,
+        ID:Counter,
+      });
+    };
+    save();
   };
 
   const CalculoMatPrima = () => {
-    const CalcValueMielB = value * 0.5;
-    const CalcValueLev = value * 0.25;
+    //Formulas para saber cantidad de miel y cantidad de levadura que se necesita
+    console.log(value);
+    const CalcValueMielB = (value / 0.9).toFixed(1);
+    const CalcValueLev = ((value * 0.03) / 0.9).toFixed(1);
+    console.log(estadoEqNoDis)
+    console.log(CalcValueMielB, CalcValueLev);
+    console.log(CantMielB, CantLev);
+    //----------------
+    //IF para notificaciones de inv faltante
+    if (CalcValueMielB > CantMielB) {
+      savenotification("MielB");
+    }
+    if (CalcValueLev > CantLev) {
+      savenotification("Levadura");
+    }
+    //-----------------
+    const espera = async () => {
+      //IF con condiciones para iniciar proceso Alcohol carburante
+      if (
+        CantMielB >= CalcValueMielB &&
+        CantLev >= CalcValueLev &&
+        estadoEqNoDis !== "No Disponible"
+      ) {
+        console.log("entrejjj");
+        // const prueba= await setEstadoAct("En progreso");
+        const CantidadRestanteMiel = CantMielB - CalcValueMielB;
+        const CantidadRestanteLev = CantLev - CalcValueLev;
+        ActuaDatosRestantes(CantidadRestanteMiel, CantidadRestanteLev);
+        ActuaEquipos("No Disponible");
+        // console.log(prueba, estadoAct);
+        saveActividad("En Progreso");
+        handleClose();
+      } else {
+        //revisar por que cuando se le quita el await no funciona
+        // const prueba = await setEstadoAct("En espera");
+        console.log("Recursos Insuficientes");
+        // console.log(prueba, estadoAct);
+        // console.log(prueba, estadoAct)
+        saveActividad("En Espera");
+        handleClose();
+      }
+    };
+    espera();
+  };
 
-    if (
-      CantMielB >= CalcValueMielB &&
-      CantLev >= CalcValueLev &&
-      estadoEqNoDis !== "No Disponible"
-    ) {
-      console.log("Incia Produccion");
-      const CantidadRestanteMiel = CantMielB - CalcValueMielB;
-      const CantidadRestanteLev = CantLev - CalcValueLev;
-      ActuaDatosRestantes(CantidadRestanteMiel, CantidadRestanteLev);
-      ActuaEquipos();
-      handleClose();
-      console.log(
-        "Cantidad Restante:" + CantidadRestanteMiel + "," + CantidadRestanteLev
-      );
+  const CapacidadAlcoholcarburante = (MielB, Lev) => {
+    //Metodo para calcular si la miel es suficiente para producir el alcohol carburante
+    console.log(MielB, Lev);
+    const resulACLev = ((Lev * 0.9) / 0.03).toFixed(1); // Se calcula el resultado de alcohol carburante dependiendo de la cantidad de levadura
+    const Xmiel = (resulACLev / 0.9).toFixed(1); //Se calcula la cantidad de miel que se necesita para producir el alcohol carburante de acuerdo con la formula anterior
+    console.log(resulACLev);
+
+    if (Xmiel <= MielB) {
+      setcapacidadAC(resulACLev + " L Alcohol Carburante");
     } else {
-      console.log("Recursos Insuficientes");
-      handleClose();
+      setcapacidadAC("Miel Insuficiente");
+      savenotification("Miel B");
     }
   };
+
   const ActuaDatosRestantes = (CantidadRestanteMiel, CantidadRestanteLev) => {
     setDoc(doc(db, "InvFermentacion", "G1t7WMnJQlBQCm2Xv4wD"), {
       Tipo: tipo,
@@ -96,52 +244,95 @@ function Cronograma(props) {
     });
   };
 
-  const ActuaEquipos = () => {
-    setDoc(doc(db, "Equipos", "Tud9n6L881gwXsUJU3Qi"),{
+  const ActuaEquipos = (disponibilidad) => {
+    setDoc(doc(db, "Equipos", "Tud9n6L881gwXsUJU3Qi"), {
       Capacidad: "5000 L",
-      Estado: "No Disponible",
+      Estado: disponibilidad,
       ID: "F1",
-      Proceso: "Fermentacion",
-      Tiempo: "8 h"
-    })
+      Proceso: "Fermentación",
+      Tiempo: "8 h",
+    });
 
-    setDoc(doc(db, "Equipos", "YT7yzreI6VKvxKfSRP4E"),{
+    setDoc(doc(db, "Equipos", "YT7yzreI6VKvxKfSRP4E"), {
       Capacidad: "5000 L",
-      Estado: "No Disponible",
+      Estado: disponibilidad,
       ID: "Des1",
-      Proceso: "Deshidratacion",
-      Tiempo: "8 h"
-    })
+      Proceso: "Deshidratación",
+      Tiempo: "8 h",
+    });
 
-    setDoc(doc(db, "Equipos", "mKO03VmMYZ63oyCcKUwo"),{
+    setDoc(doc(db, "Equipos", "mKO03VmMYZ63oyCcKUwo"), {
       Capacidad: "5000 L",
-      Estado: "No Disponible",
+      Estado: disponibilidad,
       ID: "D1",
-      Proceso: "Destilacion",
-      Tiempo: "8 h"
-    })
+      Proceso: "Destilación",
+      Tiempo: "8 h",
+    });
 
-    setDoc(doc(db, "Equipos", "o1RdjD1KQqLCtuaEDdZq"),{
+    setDoc(doc(db, "Equipos", "o1RdjD1KQqLCtuaEDdZq"), {
       Capacidad: "4000 L",
-      Estado: "No Disponible",
+      Estado: disponibilidad,
       ID: "M1",
       Proceso: "Mezcla",
-      Tiempo: "3 h"
-    })
-  }
+      Tiempo: "3 h",
+    });
+  };
+
+  const savenotification = (value) => {
+    console.log(value);
+
+    const save = async () => {
+      addDoc(collection(db, "Notificaciones"), {
+        ID: "02",
+        Tipo: "Inventario Insuficiente",
+        IDProceso: value,
+        Description:
+          "El inventario de " + " " + value + " " + "es insuficiente",
+      });
+    };
+    save();
+  };
+
+
 
   return (
     <div>
       <h1 className="mt-3 ms-3 title">Orden De Producción</h1>
       <p className="ms-3 text-start">
-        Cronograma de Alcohol Carburante a partir de la información de la orden
-        de trabajo:
+        Cronograma de producción de Alcohol Carburante:
       </p>
-      <Timer/>
-      <div className="d-grid gap-2 col-6 mt-4">
-        <button onClick={saveData} className="btn btn-primary ms-3">
-          +Agregar Actividad
-        </button>
+
+      <div className="divEquipos px-4 py-2">
+        <div className="row">
+          <div className="col-4">
+            <p>Equipos disponibles:</p>
+            <p>Capacidad para produccion:</p>
+            <p className="timer">{capacidadAC}</p>
+          </div>
+          <div className="col-4">
+            <p>Equipos disponibles en:</p>
+            <Timer handleSearch={(e) => handleSearch(e)} />
+          </div>
+          <div className="col-4 divbutton">
+            <button onClick={saveData} className="btn btn-primary">
+              Agregar Actividad
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="row mt-3">
+        <div className="col-5 ml-3 p-0">
+          <h3 className="mt-3 me-0 ms-3 p-0">Ordenes de producción</h3>
+        </div>
+        <div className="col p-0">
+          <button
+            onClick={ordenesProduccion}
+            type="button"
+            className="btn dropDown mt-3 text-start">
+            <MdOutlineRefresh />
+          </button>
+        </div>
       </div>
 
       {/* ----------Modal------ */}
@@ -150,16 +341,26 @@ function Cronograma(props) {
           <Modal.Title>Agregar Actividad</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Esta sección se configura la orden de trabajo</p>
           <div className="col-auto">
-            <input
-              type="number"
-              id="CantidadAC"
-              className="form-control ms-3"
-              name="cantidadAC"
-              value={value}
-              onChange={(e) => handleChange(e)}
-            />
+            <p>
+              Por favor ingrese la cantidad de alcohol carburante en litros que
+              desea producir:
+            </p>
+            <div className="row">
+              <div className="col-6">
+                <input
+                  type="number"
+                  id="CantidadAC"
+                  className="form-control"
+                  name="cantidadAC"
+                  value={value}
+                  onChange={(e) => handleChange(e)}
+                />
+              </div>
+              <div className="col-6">
+                <p className="m-0">L</p>
+              </div>
+            </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -172,46 +373,45 @@ function Cronograma(props) {
         </Modal.Footer>
       </Modal>
       {/* ----------ModalClose------ */}
-
       <div className="row row-cols-1 row-cols-md-3 g-4 mt-3">
         <div className="col">
-          <div className="card">
-            <div className="card-header title fw-bold">Por Hacer(1)</div>
-            <div className="card-body">
-              {/* <h5 className="card-title">Por hacer</h5> */}
-              <p className="card-text">Capacidad: </p>
-              <p className="card-text">Lote: </p>
-              <a href="www.google.com" className="btn btn-primary">
-                Ver más
-              </a>
-            </div>
+          <div className="card mb-1">
+            <div className="card-header title fw-bold">Por Hacer</div>
           </div>
+          {listaActividadEspera.map((doc) => (
+            <div key={doc.ID} className="card">
+              <div className="card-body mb-1">
+                <p className="card-text">ID:{doc.ID} </p>
+                <p className="card-text">Capacidad: {doc.Cantidad} L</p>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="col">
-          <div className="card">
-            <div className="card-header title fw-bold">En Progreso(1)</div>
-            <div className="card-body">
-              {/* <h5 className="card-title">Por hacer</h5> */}
-              <p className="card-text">Capacidad: </p>
-              <p className="card-text">Tiempo: </p>
-              <a href="www.google.com" className="btn btn-primary">
-                Ver más
-              </a>
-            </div>
+          <div className="card mb-1">
+            <div className="card-header title fw-bold">En progreso</div>
           </div>
+          {listaActividadProgreso.map((doc) => (
+            <div key={doc.ID} className="card">
+              <div className="card-body mb-1">
+                <p className="card-text">ID:{doc.ID} </p>
+                <p className="card-text">Capacidad:{doc.Cantidad} L</p>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="col">
-          <div className="card">
-            <div className="card-header title fw-bold">Completado(1)</div>
-            <div className="card-body">
-              {/* <h5 className="card-title">Por hacer</h5> */}
-              <p className="card-text">Capacidad: </p>
-              <p className="card-text">Tiempo: </p>
-              <a href="www.google.com" className="btn btn-primary">
-                Ver más
-              </a>
-            </div>
+          <div className="card mb-1">
+            <div className="card-header title fw-bold">Completadas</div>
           </div>
+          {listaActividadCompletado.map((doc) => (
+            <div key={doc.ID} className="card">
+              <div className="card-body mb-1">
+                <p className="card-text">ID :  {doc.ID} </p>
+                <p className="card-text">Capacidad: {doc.Cantidad} L </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

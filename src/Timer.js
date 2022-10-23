@@ -1,18 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react'
+import './Cronograma.css';
 
-function Timer() {
+function Timer(props) {
   // The state for our timer
   const Ref = useRef(null);
   const [timer, setTimer] = useState("00:00:00");
+  const {handleSearch}= props
 
   const getTimeRemaining = (e) => {
     const total = Date.parse(e) - Date.parse(new Date());
     const seconds = Math.floor((total / 1000) % 60);
     const minutes = Math.floor((total / 1000 / 60) % 60);
     const hours = Math.floor(((total / 1000) * 60 * 60) % 24);
+
     if(total=== 0){
-        console.log("holi")
+      // handleSearch(); // Metodo que resetea los equipos cuando se acaba el timer
+      console.log("holi")
+      
     }
+
     return {
       total,
       hours,
@@ -44,7 +50,7 @@ function Timer() {
 
   const getDeadTime = () => {
     let deadline = new Date();
-    deadline.setSeconds(deadline.getSeconds() + 5);
+    deadline.setSeconds(deadline.getSeconds() + 30); //valor para bajar timer
     // deadline.setMinutes(deadline.getMinutes() + 1)
     return deadline;
   };
@@ -60,8 +66,9 @@ function Timer() {
 
   return (
     <div>
-      <h2>{timer}</h2>
+      <p className="timer">{timer}</p>
       <button onClick={onClickReset}>Reset</button>
+      <button onClick={handleSearch}>Reset Equipos</button>
     </div>
   );
 }

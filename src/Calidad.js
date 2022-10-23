@@ -1,100 +1,351 @@
-import React, { useState } from "react";
+import React from "react";
 import { Dropdown, DropdownButton } from "react-bootstrap";
-import {CalidadFermentacion} from "./Calidad/CalidadFermentacion";
-import {CalidadDestilacion} from "./Calidad/CalidadDestilacion";
-import {CalidadDeshidratacion} from "./Calidad/CalidadDeshidratacion";
+import { collection, addDoc, getDocs } from "firebase/firestore";
+import { Modal, Button } from "react-bootstrap";
+import { getFirestore } from "firebase/firestore";
+import app from "./FireBase/firebaseConfig";
+import { MdOutlineRefresh } from "react-icons/md";
+const db = getFirestore(app);
 
-function Calidad(props) {
-  const [component, setComponent] = useState(false);
+class Calidad extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      value: "",
+      tipo: "",
+      IdTipo: "",
+      Resultado: "",
+      MensajeNotificacion: "",
+      Id: "",
+      IdOperario: "",
+      dropdown: false,
+      show: "",
+      selectDropModal: "Seleccione el tipo de prueba",
+      listaPrueba: [],
+    };
 
-  const [dropdown, setDropdown] = useState(false);
+    this.handleClose = this.handleClose.bind(this);
+    this.handleShow = this.handleShow.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.getData();
+  }
 
-  const abrircerrarDrop = () => {
-    setDropdown(!dropdown);
-  };
+  handleClose() {
+    this.setState({ show: false });
+  }
+  handleShow() {
+    this.setState({ show: true });
+  }
 
-  const selectDropdown = (variant) => {
-    if (variant === "fer") {
-      setComponent(<CalidadFermentacion />);
-      console.log("Entre a Fermentación");
+  handleChange(event) {
+    const { name, value } = event.target;
+    this.setState({
+      [name]: value,
+    });
+  }
+
+  abrircerrarDrop() {
+    this.setState({ dropdown: !this.state.dropdown });
+  }
+
+  async selectTipoMP(variant) {
+    if (variant === "Fer1") {
+      this.setState({
+        selectDropModal: " Registro % de alcohol del vino fermentado",
+        tipo: " Registro % de alcohol del vino fermentado",
+        IdTipo: "RAVF",
+      });
     }
-    if (variant === "des") {
-      setComponent(<CalidadDestilacion/>);
-      console.log("Entre a Destilación");
+    if (variant === "Fer3") {
+      this.setState({
+        selectDropModal: "Registrar valor PH",
+        tipo: "Registrar valor PH",
+        IdTipo: "RVPH",
+      });
     }
-    if (variant === "desh") {
-      setComponent(<CalidadDeshidratacion/>);
-      console.log("Entre a Deshidratracion");
+    if (variant === "Desh1") {
+      this.setState({
+        selectDropModal: "Pureza alcohol",
+        tipo: "Pureza alcohol",
+        IdTipo: "PA",
+      });
     }
-  };
-  return (
-    <div>
-      <h1 className="mt-3 ms-3 title">Calidad</h1>
-      <p className=" ms-3 text-start">
-            La producción de Alcohol Carburante a partir de caña, puede englobarse
-            en tres sub-procesos que están compuestos por las etapas de
-            fermentación, destilación y deshidratación. A continuación información
-            de las pruebas de calidad para producción de Alcohol Carburante: 
-      </p>
-      <DropdownButton
-        className="ms-3 mt-3"
-        variant="btn dropDown fw-bold"
-        title="Pruebas Calidad"
-        id="input-group-dropdown-1"
-        onToggle={abrircerrarDrop}
-      >
-        <Dropdown.Item onClick={() => selectDropdown("fer")}>
-          Fermentación
-        </Dropdown.Item>
-        <Dropdown.Item onClick={() => selectDropdown("des")}>
-          Destilación
-        </Dropdown.Item>
-        <Dropdown.Item onClick={() => selectDropdown("desh")}>
-          Deshidratación
-        </Dropdown.Item>
-      </DropdownButton>
-      <div>{component}</div>
+    if (variant === "Desh2") {
+      this.setState({
+        selectDropModal: "Registro % Etanol",
+        tipo: "Registro % Etanol",
+        IdTipo: "RE",
+      });
+    }
+    if (variant === "Dest1") {
+      this.setState({
+        selectDropModal: "Registrar valor temperatura",
+        tipo: "Registrar valor temperatura",
+        IdTipo: "RVT",
+      });
+    }
+    if (variant === "Dest2") {
+      this.setState({
+        selectDropModal: "Prueba alcohol anhidro acreditado",
+        tipo: "Prueba alcohol anhidro acreditado",
+        IdTipo: "PAAA",
+      });
+    }
+  }
 
-      <div className="card mt-3">
-        <div className="card-header title fw-bold">Descripción de la prueba:</div>
-        <div className="card-body">
-          {/* <h5 className="card-title">Equipo # </h5> */}
-          <p className="card-text">ID:</p>
-          <p className="card-text">Tipo de Prueba:</p>
-          <p className="card-text">Variable de medida:</p>
-          <p className="card-text">Operario #:</p>
-        </div>
-      </div>
-      <div className="row row-cols-1 row-cols-md-3 g-4 mt-3">
-        <div className="col">
-          <div className="card">
-            <div className="card-header title fw-bold">Activa (1)</div>
-            <div className="card-body">
-              <h5 className="card-title">Prueba # </h5>
-              <p className="card-text">Variable Medida:</p>
-              <p className="card-text">Tiempo:</p>
-              <a href="www.google.com" className="btn btn-primary">
-                Ver más
-              </a>
+  saveData() {
+    const save = async () => {
+      addDoc(collection(db, "Calidad"), {
+        Tipo: this.state.tipo,
+        ID: this.state.Id,
+        Resultado: this.state.Resultado,
+        IdOperario: this.state.IdOperario,
+      });
+    };
+    save();
+    this.setMensajeNotificacion();
+    this.handleClose();
+  }
+
+  setMensajeNotificacion() {
+    console.log("Entre SetMensaje");
+    console.log(this.state.IdTipo);
+    console.log(this.state.Resultado);
+ var mensaje= '';
+    if (this.state.IdTipo === "RAVF" && this.state.Resultado === "2") {
+      console.log("1");
+      mensaje="Resultado esperado";
+    } else if (this.state.IdTipo === "RVPH" && this.state.Resultado >= "2.5" && this.state.Resultado <= "2.7") {
+      mensaje="Resultado de PH esperado";
+      console.log("2");
+    } else if (this.state.IdTipo === "PA" && this.state.Resultado >= "9.5" && this.state.Resultado <= "10.5") {
+      mensaje="Resultado de pureza esperado";
+      console.log("3");
+    } else if (this.state.IdTipo === "RE" && this.state.Resultado >= "95" &&  this.state.Resultado <= "96") {
+      mensaje="Resultado de Etanol esperado";
+      console.log("4");
+    } else if (this.state.IdTipo === "RVT" && this.state.Resultado === "91") {
+      mensaje="Resultado esperado de temperatura";
+      console.log("5");
+    } else if (this.state.IdTipo === "RVT" && this.state.Resultado < "91") {
+      mensaje="Inyectar mas vapor";
+      console.log("6");
+    } else if (this.state.IdTipo === "PAAA" && this.state.Resultado >= "99.5") {
+      mensaje="Resultado esperado de alcohol anhidro";
+      console.log("7");
+    }
+    console.log(mensaje);
+    this.savenotification(mensaje);
+  }
+
+  savenotification(value) {
+    console.log("Entre Save Notifica");
+    console.log(value);
+  if(value !== ""){
+    const save = async () => {
+      addDoc(collection(db, "Notificaciones"), {
+        ID: "01",
+        Tipo: "Calidad",
+        IDProceso: "ID: " + this.state.Id + " " + this.state.tipo,
+        Description: value,
+      });
+    };
+    save();
+  }
+}
+
+  getData() {
+    const obtenerDatos = async () => {
+      const listaEspera = [];
+      const HistorialCalidad = await getDocs(collection(db, "Calidad"));
+
+      HistorialCalidad.docs.map((documento) => {
+        listaEspera.push(documento.data());
+        console.log(documento.data());
+      });
+      this.setState({ listaPrueba: listaEspera });
+    };
+
+    obtenerDatos();
+  }
+
+  render() {
+    return (
+      <div>
+        <h1 className="mt-3 ms-3 title">Calidad</h1>
+        <p className=" ms-3 text-start">
+          La producción de Alcohol Carburante a partir de caña, puede englobarse
+          en tres sub-procesos que están compuestos por las etapas de
+          fermentación, destilación y deshidratación. A continuación información
+          de las pruebas de calidad para producción de Alcohol Carburante:
+        </p>
+
+        {/* <div>
+          <InvFermentacion />
+        </div> */}
+        <button
+          onClick={() => this.handleShow()}
+          type="button"
+          className="btn dropDown mt-3 ms-3 text-start"
+        >
+          Agregar Resultado
+        </button>
+
+        <button
+          onClick={() => this.getData()}
+          type="button"
+          className="btn dropDown mt-3 ms-3 text-start"
+        >
+          <MdOutlineRefresh />
+        </button>
+
+        {/* ----------Modal------ */}
+        <Modal show={this.state.show} onHide={() => this.handleClose()}>
+          <Modal.Header closeButton>
+            <Modal.Title>Agregar Resultado</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <form>
+              <p>
+                Esta sección se ingresa el resultado de la prueba de calidad:
+              </p>
+              <div className="row g-3 align-items-center">
+                <div className="col-auto">
+                  <label htmlFor="inputTipoMp" className="col-form-label">
+                    Tipo de Prueba:
+                  </label>
+                  <DropdownButton
+                    className="ms-3 "
+                    variant="btn dropDown"
+                    title={this.state.selectDropModal}
+                    id="input-group-dropdown-1"
+                    onClick={() => this.abrircerrarDrop()}
+                  >
+                    <Dropdown.Divider />
+                    <Dropdown.Header>Pruebas de Fermentación:</Dropdown.Header>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Fer1")}>
+                      Registro % de alcohol del vino fermentado
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Fer3")}>
+                      Registrar valor PH
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Header>
+                      Pruebas de Deshidratación:
+                    </Dropdown.Header>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Desh1")}>
+                      Pureza alcohol
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Desh2")}>
+                      Registro % etanol
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Header>Pruebas de Destilación:</Dropdown.Header>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Dest1")}>
+                      Registrar valor temperatura
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Dest2")}>
+                      Prueba alcohol anhidro acreditado
+                    </Dropdown.Item>
+                  </DropdownButton>
+                </div>
+              </div>
+
+              <div className="row g-3 align-items-center">
+                <div className="col-auto">
+                  <label htmlFor="IdP" className="col-form-label">
+                    Ingrese el ID de la prueba:
+                  </label>
+                  <input
+                    type="number"
+                    id="IdP"
+                    className="form-control ms-3"
+                    name="Id"
+                    value={this.state.Id}
+                    onChange={(e) => this.handleChange(e)}
+                  />
+                </div>
+              </div>
+
+              <div className="row g-3 align-items-center">
+                <div className="col-auto">
+                  <label htmlFor="ResultadoPrueba" className="col-form-label">
+                    Ingrese el resultado de la prueba:
+                  </label>
+                  <div className="row">
+                    <div className="col-auto">
+                      <input
+                        type="string"
+                        id="ResultadoPrueba"
+                        className="form-control ms-3"
+                        name="Resultado"
+                        value={this.state.Resultado}
+                        onChange={(e) => this.handleChange(e)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="row g-3 align-items-center">
+                <div className="col-auto">
+                  <label htmlFor="IdOperario" className="col-form-label">
+                    Ingrese el # de operario que realizó la prueba:
+                  </label>
+                  <input
+                    type="string"
+                    id="IdOperario"
+                    className="form-control ms-3"
+                    name="IdOperario"
+                    value={this.state.IdOperario}
+                    onChange={(e) => this.handleChange(e)}
+                  />
+                </div>
+              </div>
+            </form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => this.handleClose()}>
+              Cerrar
+            </Button>
+            <Button variant="primary" onClick={() => this.saveData()}>
+              Agregar resultado de la prueba
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        {/* ----------ModalClose------ */}
+
+        <div className="row row-cols-1 g-4 mt-3">
+          <div className="col">
+            <div className="card mb-1">
+              <div className="card-header title fw-bold">
+                Historial de pruebas:
+              </div>
             </div>
+            {this.state.listaPrueba.map((doc) => (
+              <div key={doc.ID} className="card">
+                <div className="card-body mb-1">
+                  <p className="card-text">
+                    <b>Tipo de Prueba: </b>
+                    {doc.Tipo}{" "}
+                  </p>
+                  <p className="card-text">
+                    <b>ID: </b> {doc.ID}{" "}
+                  </p>
+                  <p className="card-text">
+                    <b>Resultado prueba: </b> {doc.Resultado}{" "}
+                  </p>
+                  <p className="card-text">
+                    <b>ID Operario: </b> {doc.IdOperario}{" "}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="col">
-          <div className="card">
-            <div className="card-header title fw-bold">Inactiva (1)</div>
-            <div className="card-body">
-              <h5 className="card-title">Prueba # </h5>
-              <p className="card-text">Variable Medida:</p>
-              <p className="card-text">Tiempo:</p>
-              <a href="www.google.com" className="btn btn-primary">
-                Ver más
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export { Calidad };

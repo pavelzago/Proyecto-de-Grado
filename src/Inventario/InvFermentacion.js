@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import db from "../FireBase/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { ModalInv } from "../ModalInv";
+import {getFirestore} from "firebase/firestore";
+import app from "../FireBase/firebaseConfig";
+const db = getFirestore(app);
 
 function InvFermentacion(props) {
   const [InvFermentacion1, setInvFermentacion] = useState([]);

@@ -3,6 +3,7 @@ import {Dropdown, DropdownButton} from "react-bootstrap";
 import {RecetaFermentacion} from "./Recetas-RP/RecetaFermentacion";
 import {RecetaDestilacion} from "./Recetas-RP/RecetaDestilacion";
 import {RecetaDeshidratacion} from "./Recetas-RP/RecetaDeshidratacion";
+import ImgReceta from './Imagenes/Receta.JPG';
 import './ReglasProduccion.css';
 
 function ReglasProduccion(props) {
@@ -33,13 +34,16 @@ function ReglasProduccion(props) {
 
   return (
     <div>
-      <h1 className="ms-3 mt-3 fs-4 subTitle">Reglas de Producción</h1>
+      <h4 className="ms-3 mt-3 Titulos">Reglas de Producción</h4>
       <p className="ms-3 text-start">
         La producción de Alcohol Carburante a partir de caña, puede englobarse
         en tres sub-procesos que están compuestos por las etapas de
         fermentación, destilación y deshidratación. A continuación información
         general sobre los sub-procesos:
       </p>
+      <div className="text-center w-50">
+          <img src={ImgReceta} className="rounded w-100" alt={ImgReceta}/>
+        </div>
 
       <DropdownButton className="mt-3 ms-3"
         variant="btn dropDown fw-bold"
