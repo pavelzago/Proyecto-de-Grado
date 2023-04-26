@@ -53,6 +53,9 @@ class Inventario extends React.Component {
     if (variant === "Lev") {
       this.setState({ selectDropModal: "Levadura", tipo: "Levadura" });
     }
+    if (variant === "Agua") {
+      this.setState({ selectDropModal: "Agua", tipo: "Agua" });
+    }
   }
 
   saveData() {
@@ -103,6 +106,25 @@ class Inventario extends React.Component {
                 referencia: ""
               })
             }
+          }else if(this.state.tipo === "Agua") {
+            
+            if(documento.data().Tipo === "Agua"){
+              CantidadMielTot = parseInt(this.state.cantidad) + parseInt(documento.data().Cantidad);
+              this.updateDataAgua({
+                Tipo: documento.data().Tipo,
+                Cantidad: CantidadMielTot,
+                Estado: "Disponible",
+                ID: documento.data().ID,
+                Referencia: documento.data().Referencia,
+              })
+              this.setState({
+                tipo: "",
+                cantidad: "",
+                selectDropModal: "Seleccione el tipo de Materia Prima",
+                Id: "",
+                referencia: ""
+              })
+            }
           }
         });
       }else if(datos.docs.length === 0){
@@ -130,6 +152,11 @@ class Inventario extends React.Component {
     this.savenotification("Levadura");
   }
 
+  updateDataAgua(obj){
+    setDoc(doc(db, "InvFermentacion", "Stz20Ckxc14Xuf3zp8LD"), obj)
+    this.savenotification("Agua");
+  }
+
   savenotification(value){
     console.log(value);
       const save = async () => {
@@ -153,15 +180,15 @@ class Inventario extends React.Component {
           fermentación, destilación y deshidratación. A continuación información
           de los recursos disponibles para producción de Alcohol Carburante:
         </p>
-        
-        <div><InvFermentacion/></div>
-        <button
+         <button
           onClick={() => this.handleShow()}
           type="button"
           className="btn dropDown mt-3 ms-3 text-start"
         >
           Agregar Inventario
         </button>
+        <div><InvFermentacion/></div>
+       
 
         {/* ----------Modal------ */}
         <Modal show={this.state.show} onHide={() => this.handleClose()}>
@@ -188,6 +215,9 @@ class Inventario extends React.Component {
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Lev")}>
                       Levadura
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => this.selectTipoMP("Agua")}>
+                      Agua
                     </Dropdown.Item>
                   </DropdownButton>
                 </div>

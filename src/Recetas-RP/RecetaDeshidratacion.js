@@ -26,7 +26,7 @@ function RecetaDeshidratacion(props) {
         moleculares y se obtiene el producto final de alcohol anhidro a un
         porcentaje de alcohol del 99%.
       </p>
-      <div className="text-center w-50">
+      <div className="text-center w-75 mb-5">
         <img
           src={ImgDeshidratacion}
           className="rounded w-100"

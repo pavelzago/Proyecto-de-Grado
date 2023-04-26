@@ -113,26 +113,29 @@ class Calidad extends React.Component {
     console.log(this.state.Resultado);
  var mensaje= '';
     if (this.state.IdTipo === "RAVF" && this.state.Resultado === "2") {
-      console.log("1");
       mensaje="Resultado esperado";
     } else if (this.state.IdTipo === "RVPH" && this.state.Resultado >= "2.5" && this.state.Resultado <= "2.7") {
       mensaje="Resultado de PH esperado";
-      console.log("2");
+    } else if (this.state.IdTipo === "RVPH" && this.state.Resultado < "2.5") {
+      mensaje="Solicitar adición de levaduras";
+    } else if (this.state.IdTipo === "RVPH" && this.state.Resultado > "2.7") {
+      mensaje="Solicitar Correccion de PH";
     } else if (this.state.IdTipo === "PA" && this.state.Resultado >= "9.5" && this.state.Resultado <= "10.5") {
       mensaje="Resultado de pureza esperado";
-      console.log("3");
+    } else if (this.state.IdTipo === "PA" && this.state.Resultado < "9.5") {
+      mensaje="Solicitar corrección de pureza ";
+    } else if (this.state.IdTipo === "RE" && this.state.Resultado < "95") {
+      mensaje="Redestilar";
     } else if (this.state.IdTipo === "RE" && this.state.Resultado >= "95" &&  this.state.Resultado <= "96") {
       mensaje="Resultado de Etanol esperado";
-      console.log("4");
     } else if (this.state.IdTipo === "RVT" && this.state.Resultado === "91") {
       mensaje="Resultado esperado de temperatura";
-      console.log("5");
     } else if (this.state.IdTipo === "RVT" && this.state.Resultado < "91") {
       mensaje="Inyectar mas vapor";
-      console.log("6");
     } else if (this.state.IdTipo === "PAAA" && this.state.Resultado >= "99.5") {
       mensaje="Resultado esperado de alcohol anhidro";
-      console.log("7");
+    } else if (this.state.IdTipo === "PAAA" && this.state.Resultado < "97.5") {
+      mensaje="El alcohol carburante no cumple con los requisitos de calidad.";
     }
     console.log(mensaje);
     this.savenotification(mensaje);
@@ -224,28 +227,28 @@ class Calidad extends React.Component {
                     <Dropdown.Divider />
                     <Dropdown.Header>Pruebas de Fermentación:</Dropdown.Header>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Fer1")}>
-                      Registro % de alcohol del vino fermentado
+                      Registro % de alcohol del vino fermentado (2%)
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Fer3")}>
-                      Registrar valor PH
+                      Registrar valor PH entre (2.5 PH 2.7)
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Header>
                       Pruebas de Deshidratación:
                     </Dropdown.Header>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Desh1")}>
-                      Pureza alcohol
+                      Pureza alcohol entre (9.5% Pureza 10.5%)
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Desh2")}>
-                      Registro % etanol
+                      Registro % etanol entre (95 Etanol 96 %)
                     </Dropdown.Item>
                     <Dropdown.Divider />
                     <Dropdown.Header>Pruebas de Destilación:</Dropdown.Header>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Dest1")}>
-                      Registrar valor temperatura
+                      Registrar valor temperatura (91 grados)
                     </Dropdown.Item>
                     <Dropdown.Item onClick={() => this.selectTipoMP("Dest2")}>
-                      Prueba alcohol anhidro acreditado
+                      Prueba alcohol anhidro acreditado (mayor a 99.5%)
                     </Dropdown.Item>
                   </DropdownButton>
                 </div>

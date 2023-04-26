@@ -3,7 +3,7 @@ import {Dropdown, DropdownButton} from "react-bootstrap";
 import {RecetaFermentacion} from "./Recetas-RP/RecetaFermentacion";
 import {RecetaDestilacion} from "./Recetas-RP/RecetaDestilacion";
 import {RecetaDeshidratacion} from "./Recetas-RP/RecetaDeshidratacion";
-import ImgReceta from './Imagenes/Receta.JPG';
+import ImgReceta from './Imagenes/FormulaGeneral.JPG';
 import './ReglasProduccion.css';
 
 function ReglasProduccion(props) {
@@ -42,10 +42,10 @@ function ReglasProduccion(props) {
         general sobre los sub-procesos:
       </p>
       <div className="text-center w-50">
-          <img src={ImgReceta} className="rounded w-100" alt={ImgReceta}/>
+          <img src={ImgReceta} className="rounded w-150 m-5" alt={ImgReceta}/>
         </div>
 
-      <DropdownButton className="mt-3 ms-3"
+      <DropdownButton className="ms-3 mb-3"
         variant="btn dropDown fw-bold"
         title="Recetas"
         id="input-group-dropdown-1"

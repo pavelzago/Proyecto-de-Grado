@@ -2,16 +2,19 @@ import React, { Component } from "react";
 import app from "./FireBase/firebaseConfig";
 import "./Login.css";
 import Logo from "./Imagenes/Logo.png";
+import Alert from "react-bootstrap/Alert";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import { Link, Router, useNavigate, NavLink, Route, Switch } from "react-router-dom";
 import { RegistroUser } from "./RegistroUser";
+import { MenuButton } from "./MenuButton";
 
 const Auth = getAuth(app);
 
-export default class Login extends Component {
+class LoginRegistro extends Component {
   usuario = React.createRef();
   contraseña = React.createRef();
 
@@ -24,10 +27,7 @@ export default class Login extends Component {
     //Este enlace es necesario para hacer que `this` funcione en el callback
     this.login = this.login.bind(this);
     this.signup = this.signup.bind(this);
-  }
-
-  handleShow() {
-    this.setState({ show: true });
+    this.navigateRegister = this.navigateRegister.bind(this);
   }
 
   login(e) {
@@ -42,6 +42,9 @@ export default class Login extends Component {
       });
   }
 
+  navigateRegister() {
+    this.setState({ buttonregister: true });
+  }
 
   signup(e) {
     e.preventDefault();
@@ -105,15 +108,14 @@ export default class Login extends Component {
                   Login
                 </button>
                 <br />
-                <button className="ButtonRegister" onClick={() => this.handleShow()}>
+                <a href="/Registro">Text</a>
+                {/* <button className="ButtonRegister" onClick={this.navigateRegister}>
                   Registrarse
-                </button>
-                <div>
-                  <RegistroUser
-                  show={this.state.show}
-                 />
-                </div>
+                </button> */}
               </form>
+              <Alert show={this.state.show} variant="success">
+                <p>Registro exitoso!</p>
+              </Alert>
             </div>
           </div>
         </div>
@@ -121,3 +123,4 @@ export default class Login extends Component {
     );
   }
 }
+export {LoginRegistro};

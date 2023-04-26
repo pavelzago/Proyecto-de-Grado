@@ -1,5 +1,5 @@
 import React from "react";
-import ImgProcesoAC from './Imagenes/Proceso Alcohol Carburante.JPG';
+import ImgProcesoAC from './Imagenes/Subprocesos.JPG';
 
 function Inicio() {
   return (
@@ -25,7 +25,7 @@ function Inicio() {
           de comunicaciones, vertical y horizontal.
         </p>
         <div className="text-center w-50">
-          <img src={ImgProcesoAC} className="rounded w-100" alt={ImgProcesoAC}/>
+          <img src={ImgProcesoAC} className="rounded w-150 m-5" alt={ImgProcesoAC}/>
         </div>
       </div>
     </div>

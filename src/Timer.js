@@ -14,7 +14,7 @@ function Timer(props) {
     const hours = Math.floor(((total / 1000) * 60 * 60) % 24);
 
     if(total=== 0){
-      // handleSearch(); // Metodo que resetea los equipos cuando se acaba el timer
+      handleSearch(); // Metodo que resetea los equipos cuando se acaba el timer
       console.log("holi")
       
     }

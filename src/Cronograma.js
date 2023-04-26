@@ -1,419 +1,459 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button } from "react-bootstrap";
-import { collection, getDocs, setDoc, doc, addDoc } from "firebase/firestore";
-import { Timer } from "./Timer";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { getFirestore } from "firebase/firestore";
+import { ModalAgregarOP } from "./ModalAgregarOP";
+import { PopUpAutohide } from "./toastide";
+// Icons
 import { MdOutlineRefresh } from "react-icons/md";
+import "./Cronograma.css";
 
 import app from "./FireBase/firebaseConfig";
-import "./Cronograma.css";
 const db = getFirestore(app);
 
 function Cronograma() {
-  const [show, setShow] = useState(false);
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-  const [CantMielB, setCantMielB] = useState(false);
-  const [Counter, setCounter]=useState(1);
-  const [CantLev, setLev] = useState(false);
-  const [value, setValue] = useState(false); //Valor del input que ingresa el usuario
-  const [tipo, setTipo] = useState(false);
-  const [ID, setID] = useState(false);
-  const [referencia, setReferencia] = useState(false);
-  const [tipoLev, setTipoLev] = useState(false);
-  const [IDLev, setIDLev] = useState(false);
-  const [referenciaLev, setReferenciaLev] = useState(false);
-  const [estadoEqNoDis, setEstadoEqNoDis] = useState(false);
-  const [estadoAct, setEstadoAct] = useState(false);
-  const [capacidadAC, setcapacidadAC] = useState();
-  const [listaActividadEspera, setlistaActividadEspera] = useState([]);
-  const [listaActividadProgreso, setlistaActividadProgreso] = useState([]);
+  const [Productfinishvalue, setProductfinishvalue] = useState(0);
+  const [EstadoEquipos, setEstadoEquipos] = useState("");
+  const [EstadoMielB, setEstadoMielB] = useState(false);
+  const [MielBD, setMielBD] = useState();
+  const [EstadoAgua, setEstadoAgua] = useState(false);
+  const [AguaBD, setAguaBD] = useState();
+  const [EstadoLevadura, setEstadoLevadura] = useState(false);
+  const [LevaduraBD, setLevaduraBD] = useState();
   const [listaActividadCompletado, setlistaActividadCompletado] = useState([]);
-  const [objectprogress, setobjectprogress] =useState({});
-  const [IdDocumentFire, setIdDocumentFire]=useState();
-  const [tiempo, settiempo]=useState(false); 
+  const [listaActividadEspera, setlistaActividadEspera] = useState([]);
+  const [listaActividadID, setlistaActividadID] = useState([]);
+  const [show, setShow] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [typeAlert, setTypeAlert] = useState("");
+  const [titleAlert, setTitleAlert] = useState("");
+  const [textAlert, setTextAlert] = useState("");
+  const [AlcoholCarEspera, setAlcoholCarEspera] = useState(0);
+
+  const handleShow = () => setShow(true);
+  const handleClose = () => setShow(false);
+  const handleCloseAlert = () => setShowAlert(false);
 
   useEffect(() => {
-    //  console.log(props.Timer);
-    getData();
-    ordenesProduccion();
+    GetproductoTerminadoBD();
+    EquiposAvailable();
+    InventarioAvailable();
+    GetactividadesBD();
   }, []);
 
-  useEffect(() => {
-    console.log(IdDocumentFire);
-    console.log(objectprogress);
-    
-    if(tiempo === true){
-      setprogresstocomplete(IdDocumentFire, objectprogress);
-    }
-  }, [IdDocumentFire, objectprogress]);
+  // Metodo para traer actividades de la base de datos
+  const GetactividadesBD = () => {
+    const listaActividadespendientes = [];
+    const listaCompletado = [];
+    const ArrayActividadesID = [];
+    var TotalAlcoholCarAProducir = 0;
 
-  const handleChange = (event) => {
-    setValue(event.target.value);
-  };
-  //Metodo para cambiar estado de equipos cuando se acabe el timer
-  const handleSearch = (e) => {
-    ActuaEquipos("Disponible");
-    settiempo(true);
-    console.log("Entre");
-    console.log(IdDocumentFire);
-  };
-
-  const getData = () => {
-    var mielB = 0;
-    var lev = 0;
     const obtenerDatos = async () => {
-      try {
-        const datosInv = await getDocs(collection(db, "InvFermentacion"));
-        //En este metodo se inicializan las variables con las cantidades de la base de datos
-        datosInv.forEach((documento) => {
-          if (documento.data().Tipo === "Miel B") {
-            mielB = documento.data().Cantidad;
-            console.log(mielB);
-          } else if (documento.data().Tipo === "Levadura") {
-            lev = documento.data().Cantidad;
-          }
-        });
-        CapacidadAlcoholcarburante(mielB, lev);
-      } catch (error) {}
-    };
-    obtenerDatos();
-  };
-
-  const ordenesProduccion = () => {
-    const obtenerDatos = async () => {
-      const listaEspera = [];
-      const listaProgreso = [];
-      const listaCompletado = [];
-
-      try {
-        const datosActividad = await getDocs(collection(db, "Actividad"));
-        console.log(datosActividad.size)
-        datosActividad.docs.map((doc) => {
-          
-          if (doc.data().Estado === "En Espera") {
-            listaEspera.push(doc.data());
-            console.log(listaEspera.length)
-
-          } else if (doc.data().Estado === "En Progreso") {
-              listaProgreso.push(doc.data());
-                let idgeneral=doc.id;
-                setobjectprogress({
-                  Cantidad: doc.data().Cantidad,
-                  Estado: "Completado",
-                  ID:doc.data().ID,
-                })
-               setIdDocumentFire(idgeneral);
-            
-          } else if (doc.data().Estado === "Completado") {
-            listaCompletado.push(doc.data());
-          }
-        });
-      } catch (error) {
-        console.log(error);
-      }
-      setlistaActividadEspera(listaEspera);
-      setlistaActividadProgreso(listaProgreso);
+      const datosActividad = await getDocs(collection(db, "Actividad"));
+      datosActividad.forEach((value) => {
+        if (value.data().Estado === "En Espera") {
+          listaActividadespendientes.push(value.data());
+          ArrayActividadesID.push({
+            ID: value.id,
+            Cantidad: value.data().Cantidad,
+          });
+          TotalAlcoholCarAProducir += parseInt(value.data().Cantidad);
+          CalculoBatchEspera(TotalAlcoholCarAProducir);
+        } else if (value.data().Estado === "Completado") {
+          listaCompletado.push(value.data());
+        }
+      });
+      setlistaActividadEspera(listaActividadespendientes);
       setlistaActividadCompletado(listaCompletado);
-
+      setlistaActividadID(ArrayActividadesID);
     };
     obtenerDatos();
   };
-    //Metodo para cambiar estado de progress a complete
-  const setprogresstocomplete = (id, obje) =>{
-    setDoc(doc(db, "Actividad", id), obje);
-  }
 
-  const saveData = () => {
-
+  //Metodo para calcular cuantas batch se necesitan
+  const CalculoBatchEspera = (value) => {
+    var TotalBatch = Math.ceil(value / 5);
+    setAlcoholCarEspera(TotalBatch);
+  };
+  //Obtener valor de la cantidad de producto terminado de la base de datos
+  const GetproductoTerminadoBD = () => {
     const obtenerDatos = async () => {
-      const datosInv = await getDocs(collection(db, "InvFermentacion"));
-      const datosEq = await getDocs(collection(db, "Equipos"));
-
-      datosEq.forEach((documento) => {
-        if (documento.data().Estado === "No Disponible") {
-          setEstadoEqNoDis(documento.data().Estado);
-        }
-      });
-      datosInv.forEach((documento) => {
-        if (documento.data().Tipo === "Miel B") {
-          setCantMielB(documento.data().Cantidad);
-          setTipo(documento.data().Tipo);
-          setID(documento.data().ID);
-          setReferencia(documento.data().Referencia);
-        } else if (documento.data().Tipo === "Levadura") {
-          setLev(documento.data().Cantidad);
-          setTipoLev(documento.data().Tipo);
-          setIDLev(documento.data().ID);
-          setReferenciaLev(documento.data().Referencia);
+      const productFinish = await getDocs(collection(db, "InvFermentacion"));
+      productFinish.forEach((value) => {
+        if (value.data().Tipo === "ProductoTerminado") {
+          setProductfinishvalue(value.data().Cantidad);
         }
       });
     };
     obtenerDatos();
-    handleShow();
   };
 
-  const saveActividad = (estado) => {
-    var id=Counter+1;
-    setCounter(id);
+  //Guardar valor del producto terminado en la base de datos
+  const saveFinishProductBD = (value) => {
+    updateDoc(doc(db, "InvFermentacion", "7mG92taRIe9P8xGV4Vhn"), {
+      Cantidad: value,
+    });
+  };
+
+  //Metodo para conocer disponibilidad de equipos
+  const EquiposAvailable = () => {
+    const obtenerDatos = async () => {
+      const ListaEquipos = await getDocs(collection(db, "Equipos"));
+      ListaEquipos.forEach((documento) => {
+        if (documento.data().Estado === "No Disponible") {
+          setEstadoEquipos(documento.data().Estado);
+        } else if (documento.data().Estado === "Disponible") {
+          setEstadoEquipos(documento.data().Estado);
+        }
+      });
+    };
+    obtenerDatos();
+  };
+
+  //Metodo para conocer disponibilidad de inventario
+  const InventarioAvailable = () => {
+    const obtenerDatos = async () => {
+      const ListaInventario = await getDocs(collection(db, "InvFermentacion"));
+      ListaInventario.forEach((documento) => {
+        if (documento.data().Tipo === "Miel B") {
+          if (documento.data().Cantidad > 5.5) {
+            setEstadoMielB(true);
+            setMielBD(documento.data().Cantidad);
+          }
+        } else if (documento.data().Tipo === "Levadura") {
+          if (documento.data().Cantidad > 0.16) {
+            setEstadoLevadura(true);
+            setLevaduraBD(documento.data().Cantidad);
+          }
+        } else if (documento.data().Tipo === "Agua") {
+          if (documento.data().Cantidad > 20) {
+            setEstadoAgua(true);
+            setAguaBD(documento.data().Cantidad);
+          }
+        }
+      });
+    };
+    obtenerDatos();
+  };
+
+  //Guardar valor del producto terminado en la base de datos
+  const startProduction = () => {
+    GetproductoTerminadoBD();
+    EquiposAvailable();
+    InventarioAvailable();
+    console.log(EstadoEquipos);
+    console.log(EstadoMielB);
+    console.log(EstadoLevadura);
+    console.log(EstadoAgua);
+    mostrarpopups(EstadoEquipos, EstadoMielB, EstadoLevadura, EstadoAgua);
+    var totalProductoterminado = 0;
+    if (Productfinishvalue === 20) {
+      console.log("Almacenamiento lleno");
+      setShowAlert(true);
+      setTypeAlert("danger");
+      setTitleAlert("Lo sentimos!");
+      setTextAlert(
+        "No se puede poner en producción debido a que el almacenamiento de los tanques esta completo"
+      );
+    } else if (
+      EstadoEquipos !== "No Disponible" &&
+      EstadoMielB === true &&
+      EstadoLevadura === true &&
+      EstadoAgua === true
+    ) {
+      //En este if se agrega producto terminado a el almacenamiento
+      console.log("Entreeeee");
+      totalProductoterminado = Productfinishvalue + 5;
+      var MielRestante = MielBD - 5.5;
+      var LevaduraRestante = LevaduraBD - 0.16;
+      var AguaRestante = AguaBD - 20;
+      setEstadoLevadura(false);
+      setEstadoMielB(false);
+      setEstadoAgua(false);
+      saveFinishProductBD(totalProductoterminado);
+      ActualizarDatosRestantesInventario(
+        MielRestante,
+        LevaduraRestante,
+        AguaRestante
+      );
+      ActuaEquipos("No Disponible");
+    }
+  };
+
+  // Metodo para mostrar popups
+
+  const mostrarpopups = (
+    EstadoEquipos,
+    EstadoMielB,
+    EstadoLevadura,
+    EstadoAgua
+  ) => {
+    if (EstadoEquipos === "No Disponible") {
+      setShowAlert(true);
+      setTypeAlert("danger");
+      setTitleAlert("Lo sentimos!");
+      setTextAlert("Los equipos no estan Disponibles");
+    } else if (EstadoMielB === false) {
+      setShowAlert(true);
+      setTypeAlert("danger");
+      setTitleAlert("Lo sentimos!");
+      setTextAlert("No hay Miel B en el inventario");
+    } else if (EstadoLevadura === false) {
+      setShowAlert(true);
+      setTypeAlert("danger");
+      setTitleAlert("Lo sentimos!");
+      setTextAlert("No hay Levadura en el inventario");
+    } else if (EstadoAgua === false) {
+      setShowAlert(true);
+      setTypeAlert("danger");
+      setTitleAlert("Lo sentimos!");
+      setTextAlert("No hay Agua en el inventario");
+    }
+  };
+
+  //Metodo para actualizar datos del inventario en la base de datos
+  const ActualizarDatosRestantesInventario = (
+    CantidadRestanteMiel,
+    CantidadRestanteLev,
+    CantidadRestanteAgua
+  ) => {
+    updateDoc(doc(db, "InvFermentacion", "G1t7WMnJQlBQCm2Xv4wD"), {
+      Cantidad: CantidadRestanteMiel,
+    });
+    updateDoc(doc(db, "InvFermentacion", "Xi2s4yCOpwzv52X6nzZh"), {
+      Cantidad: CantidadRestanteLev,
+    });
+    updateDoc(doc(db, "InvFermentacion", "Stz20Ckxc14Xuf3zp8LD"), {
+      Cantidad: CantidadRestanteAgua,
+    });
+  };
+
+  //Metodo para actualizar actividades
+  const saveActividad = (value, estado) => {
+    var id = Math.trunc(Math.random() * (1000 - 100) + 100);
     const save = async () => {
       addDoc(collection(db, "Actividad"), {
         Cantidad: value,
         Estado: estado,
-        ID:Counter,
+        ID: id,
       });
     };
     save();
   };
 
-  const CalculoMatPrima = () => {
-    //Formulas para saber cantidad de miel y cantidad de levadura que se necesita
-    console.log(value);
-    const CalcValueMielB = (value / 0.9).toFixed(1);
-    const CalcValueLev = ((value * 0.03) / 0.9).toFixed(1);
-    console.log(estadoEqNoDis)
-    console.log(CalcValueMielB, CalcValueLev);
-    console.log(CantMielB, CantLev);
-    //----------------
-    //IF para notificaciones de inv faltante
-    if (CalcValueMielB > CantMielB) {
-      savenotification("MielB");
-    }
-    if (CalcValueLev > CantLev) {
-      savenotification("Levadura");
-    }
-    //-----------------
-    const espera = async () => {
-      //IF con condiciones para iniciar proceso Alcohol carburante
-      if (
-        CantMielB >= CalcValueMielB &&
-        CantLev >= CalcValueLev &&
-        estadoEqNoDis !== "No Disponible"
-      ) {
-        console.log("entrejjj");
-        // const prueba= await setEstadoAct("En progreso");
-        const CantidadRestanteMiel = CantMielB - CalcValueMielB;
-        const CantidadRestanteLev = CantLev - CalcValueLev;
-        ActuaDatosRestantes(CantidadRestanteMiel, CantidadRestanteLev);
-        ActuaEquipos("No Disponible");
-        // console.log(prueba, estadoAct);
-        saveActividad("En Progreso");
-        handleClose();
-      } else {
-        //revisar por que cuando se le quita el await no funciona
-        // const prueba = await setEstadoAct("En espera");
-        console.log("Recursos Insuficientes");
-        // console.log(prueba, estadoAct);
-        // console.log(prueba, estadoAct)
-        saveActividad("En Espera");
-        handleClose();
-      }
-    };
-    espera();
-  };
-
-  const CapacidadAlcoholcarburante = (MielB, Lev) => {
-    //Metodo para calcular si la miel es suficiente para producir el alcohol carburante
-    console.log(MielB, Lev);
-    const resulACLev = ((Lev * 0.9) / 0.03).toFixed(1); // Se calcula el resultado de alcohol carburante dependiendo de la cantidad de levadura
-    const Xmiel = (resulACLev / 0.9).toFixed(1); //Se calcula la cantidad de miel que se necesita para producir el alcohol carburante de acuerdo con la formula anterior
-    console.log(resulACLev);
-
-    if (Xmiel <= MielB) {
-      setcapacidadAC(resulACLev + " L Alcohol Carburante");
+  //Metodo para traer input de modal y calcular producto terminado restante y actualizacion BD
+  const dataInput = (value) => {
+    var ValuePTrestante = 0;
+    if (value <= Productfinishvalue) {
+      console.log("Si puedo hacerlo");
+      setShowAlert(true);
+      setTypeAlert("success");
+      setTitleAlert("Orden completada!");
+      setTextAlert("Su orden ha sido completada con exito");
+      ValuePTrestante = Productfinishvalue - value;
+      setProductfinishvalue(ValuePTrestante);
+      saveFinishProductBD(ValuePTrestante);
+      saveActividad(value, "Completado");
     } else {
-      setcapacidadAC("Miel Insuficiente");
-      savenotification("Miel B");
+      console.log("Orden Pendiente");
+      saveActividad(value, "En Espera");
     }
+    handleClose();
   };
 
-  const ActuaDatosRestantes = (CantidadRestanteMiel, CantidadRestanteLev) => {
-    setDoc(doc(db, "InvFermentacion", "G1t7WMnJQlBQCm2Xv4wD"), {
-      Tipo: tipo,
-      Cantidad: CantidadRestanteMiel,
-      Estado: "Disponible",
-      ID: ID,
-      Referencia: referencia,
-    });
-    setDoc(doc(db, "InvFermentacion", "Xi2s4yCOpwzv52X6nzZh"), {
-      Tipo: tipoLev,
-      Cantidad: CantidadRestanteLev,
-      Estado: "Disponible",
-      ID: IDLev,
-      Referencia: referenciaLev,
-    });
-  };
-
+  //Metodo para cambiar estado de equipos
   const ActuaEquipos = (disponibilidad) => {
-    setDoc(doc(db, "Equipos", "Tud9n6L881gwXsUJU3Qi"), {
-      Capacidad: "5000 L",
+    updateDoc(doc(db, "Equipos", "Tud9n6L881gwXsUJU3Qi"), {
       Estado: disponibilidad,
-      ID: "F1",
-      Proceso: "Fermentación",
-      Tiempo: "8 h",
     });
 
-    setDoc(doc(db, "Equipos", "YT7yzreI6VKvxKfSRP4E"), {
-      Capacidad: "5000 L",
+    updateDoc(doc(db, "Equipos", "YT7yzreI6VKvxKfSRP4E"), {
       Estado: disponibilidad,
-      ID: "Des1",
-      Proceso: "Deshidratación",
-      Tiempo: "8 h",
     });
 
-    setDoc(doc(db, "Equipos", "mKO03VmMYZ63oyCcKUwo"), {
-      Capacidad: "5000 L",
+    updateDoc(doc(db, "Equipos", "mKO03VmMYZ63oyCcKUwo"), {
       Estado: disponibilidad,
-      ID: "D1",
-      Proceso: "Destilación",
-      Tiempo: "8 h",
     });
 
-    setDoc(doc(db, "Equipos", "o1RdjD1KQqLCtuaEDdZq"), {
-      Capacidad: "4000 L",
+    updateDoc(doc(db, "Equipos", "o1RdjD1KQqLCtuaEDdZq"), {
       Estado: disponibilidad,
-      ID: "M1",
-      Proceso: "Mezcla",
-      Tiempo: "3 h",
+    });
+    setEstadoEquipos(disponibilidad);
+  };
+
+  //Metodo para actualizar activades a completado
+  const UpdateActCompletado = (ID, disponibilidad) => {
+    updateDoc(doc(db, "Actividad", ID), {
+      Estado: disponibilidad,
     });
   };
 
-  const savenotification = (value) => {
-    console.log(value);
+  //Metodo para pasar actividades a completado
+  const OrdenesACompletado = () => {
+    var ProductfinRest2 = Productfinishvalue;
+    listaActividadID.forEach((value) => {
+      if (value.Cantidad <= ProductfinRest2) {
+        ProductfinRest2 = ProductfinRest2 - value.Cantidad;
+        saveFinishProductBD(ProductfinRest2);
+        UpdateActCompletado(value.ID, "Completado");
+        MostrarAlerts ("success", "Orden completada!", "Tu orden ha sido completada con exito")
+      }else if(value.Cantidad > ProductfinRest2){
+        console.log("no ay alcool ")
+        MostrarAlerts ("danger", "Lo sentimos!", "No tienes alcohol para completar la orden")
 
-    const save = async () => {
-      addDoc(collection(db, "Notificaciones"), {
-        ID: "02",
-        Tipo: "Inventario Insuficiente",
-        IDProceso: value,
-        Description:
-          "El inventario de " + " " + value + " " + "es insuficiente",
-      });
-    };
-    save();
+      }
+      setProductfinishvalue(ProductfinRest2);
+    });
+    if(listaActividadID.length === 0){
+      MostrarAlerts ("danger", "Lo sentimos!", "No tienes ordenes pendientes para completar")
+      console.log("no tienes ordenes pendientes")
+    }
+    GetactividadesBD();
   };
 
-
+  const MostrarAlerts = (tipo, titulo, cuerpo)=> {
+    setShowAlert(true);
+    setTypeAlert(tipo);
+    setTitleAlert(titulo);
+    setTextAlert(cuerpo);
+  }
 
   return (
     <div>
       <h1 className="mt-3 ms-3 title">Orden De Producción</h1>
-      <p className="ms-3 text-start">
-        Cronograma de producción de Alcohol Carburante:
-      </p>
-
-      <div className="divEquipos px-4 py-2">
-        <div className="row">
-          <div className="col-4">
-            <p>Equipos disponibles:</p>
-            <p>Capacidad para produccion:</p>
-            <p className="timer">{capacidadAC}</p>
-          </div>
-          <div className="col-4">
-            <p>Equipos disponibles en:</p>
-            <Timer handleSearch={(e) => handleSearch(e)} />
-          </div>
-          <div className="col-4 divbutton">
-            <button onClick={saveData} className="btn btn-primary">
-              Agregar Actividad
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="row mt-3">
-        <div className="col-5 ml-3 p-0">
-          <h3 className="mt-3 me-0 ms-3 p-0">Ordenes de producción</h3>
-        </div>
-        <div className="col p-0">
-          <button
-            onClick={ordenesProduccion}
-            type="button"
-            className="btn dropDown mt-3 text-start">
-            <MdOutlineRefresh />
-          </button>
-        </div>
-      </div>
-
-      {/* ----------Modal------ */}
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Agregar Actividad</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="col-auto">
-            <p>
-              Por favor ingrese la cantidad de alcohol carburante en litros que
-              desea producir:
-            </p>
-            <div className="row">
-              <div className="col-6">
-                <input
-                  type="number"
-                  id="CantidadAC"
-                  className="form-control"
-                  name="cantidadAC"
-                  value={value}
-                  onChange={(e) => handleChange(e)}
-                />
-              </div>
-              <div className="col-6">
-                <p className="m-0">L</p>
-              </div>
+      <div className="row mt-5 mb-5">
+        <div className="col-6">
+          <div className="card card-up">
+            <div className="card-body">
+              <p className="textmodal1 mb-0">{Productfinishvalue} Lts.</p>
+              <p className="textmodal2 mb-0"> Producto terminado almacenado</p>
             </div>
           </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cerrar
-          </Button>
-          <Button variant="primary" onClick={CalculoMatPrima}>
-            +Agregar Actividad
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      {/* ----------ModalClose------ */}
-      <div className="row row-cols-1 row-cols-md-3 g-4 mt-3">
+        </div>
+
+        <div className="col-6">
+          <div className="card card-up">
+            <div className="card-body">
+              <p className="textmodal1 mb-0">{AlcoholCarEspera}</p>
+              <p className="textmodal2 mb-0">
+                Cantidad de batch para completar actividades
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* lista botones */}
+
+      <button
+        onClick={startProduction}
+        type="button"
+        className="btn botoncronograma"
+      >
+        Iniciar producción
+      </button>
+      <button
+        onClick={handleShow}
+        type="button"
+        className="btn botoncronograma"
+      >
+        Agregar orden
+      </button>
+      <button
+        onClick={(e) => ActuaEquipos("Disponible")}
+        type="button"
+        className="btn botoncronograma"
+      >
+        Reset Equipos
+      </button>
+      
+      <button
+        onClick={OrdenesACompletado}
+        type="button"
+        className="btn botoncronograma"
+      >
+        Actividades a completado
+      </button>
+      {/* lista botones */}
+
+      {/* Modal */}
+      <div>
+        <ModalAgregarOP
+          show={show}
+          handleClose={handleClose}
+          dataInput={dataInput}
+        />
+      </div>
+      {/* Cierre Modal */}
+
+      {/* Aqui empieza la lista de las actividades */}
+      <div className="row row-cols-1 row-cols-md-2 g-4 mt-1">
         <div className="col">
           <div className="card mb-1">
-            <div className="card-header title fw-bold">Por Hacer</div>
+            <div className="card-header title fw-bold">
+              <div className="row">
+                <div className="col-9">Actividades por Hacer</div>
+                <div className="col-3 text-end">
+                  <button
+                    onClick={GetactividadesBD}
+                    type="button"
+                    className="botonrefresh"
+                  >
+                    <MdOutlineRefresh />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           {listaActividadEspera.map((doc) => (
-            <div key={doc.ID} className="card">
-              <div className="card-body mb-1">
-                <p className="card-text">ID:{doc.ID} </p>
-                <p className="card-text">Capacidad: {doc.Cantidad} L</p>
+            <div key={doc.ID} className="card cardEspera">
+              <div className="card-body mb-1 ">
+                <p className="card-text">
+                  <b>Cantidad de alcohol a producir: {doc.Cantidad} Lts.</b>
+                </p>
+                <p className="card-text">Orden #: {doc.ID} </p>
               </div>
             </div>
           ))}
         </div>
         <div className="col">
           <div className="card mb-1">
-            <div className="card-header title fw-bold">En progreso</div>
-          </div>
-          {listaActividadProgreso.map((doc) => (
-            <div key={doc.ID} className="card">
-              <div className="card-body mb-1">
-                <p className="card-text">ID:{doc.ID} </p>
-                <p className="card-text">Capacidad:{doc.Cantidad} L</p>
-              </div>
+            <div className="card-header title fw-bold">
+              Actividades completadas
             </div>
-          ))}
-        </div>
-        <div className="col">
-          <div className="card mb-1">
-            <div className="card-header title fw-bold">Completadas</div>
           </div>
           {listaActividadCompletado.map((doc) => (
-            <div key={doc.ID} className="card">
+            <div key={doc.ID} className="card cardCompletada">
               <div className="card-body mb-1">
-                <p className="card-text">ID :  {doc.ID} </p>
-                <p className="card-text">Capacidad: {doc.Cantidad} L </p>
+                <p className="card-text">
+                  <b>Cantidad de alcohol producida: {doc.Cantidad} Lts.</b>
+                </p>
+                <p className="card-text">Orden #: {doc.ID} </p>
               </div>
             </div>
           ))}
         </div>
       </div>
+      {/* Aqui se acaba la lista de actividades */}
+
+      {/* div para alert */}
+      <div className="text-center">
+        <div className="position-absolute top-50 start-50 translate-middle">
+          <PopUpAutohide
+            type={typeAlert}
+            state={showAlert}
+            title={titleAlert}
+            text={textAlert}
+            handleCloseAlert={handleCloseAlert}
+          />
+        </div>
+      </div>
+      {/* cirre div para alert */}
     </div>
   );
 }

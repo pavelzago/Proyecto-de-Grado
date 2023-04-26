@@ -1,5 +1,5 @@
 import React from "react";
-import ImgFermCont from "../Imagenes/ProcesoFermentacionCont.JPG";
+import ImgFermCont from "../Imagenes/SubProcesoFermentacion.JPG";
 
 function RecetaFermentacion(props) {
   return (
@@ -28,7 +28,7 @@ function RecetaFermentacion(props) {
         operación de conversión de biomasa en etanol carburante; llevada a cabo
         por medio de la levadura saccharomyces Cereviscie.
       </p>
-      <div className="text-center w-50">
+      <div className="text-center w-75 mb-5">
         <img src={ImgFermCont} className="rounded w-100" alt={ImgFermCont} />
       </div>
     </div>

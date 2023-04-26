@@ -12,6 +12,7 @@ function EqFermentacion() {
   const [listaActFerm, setlistaActFerm] = useState([]);
   const [listaActDest, setlistaActDest] = useState([]);
   const [listaActDesh, setlistaActDesh] = useState([]);
+  const [listaActMez, setlistaActMez] = useState([]);
 
   useEffect(() => {
     getInventario();
@@ -21,6 +22,7 @@ function EqFermentacion() {
       const listaFerm = [];
       const listaDest = [];
       const listaDesh = [];
+      const listaMez = [];
       const datosEq = await getDocs(collection(db, "Equipos"));
       // const listaEq = datosEq.docs.map((doc) => doc.data());
       const listaEq = datosEq.docs.map((doc) => {
@@ -30,12 +32,15 @@ function EqFermentacion() {
           listaDest.push(doc.data());
         } else if (doc.data().Proceso === "Deshidratación") {
           listaDesh.push(doc.data());
+        } else if (doc.data().Proceso === "Mezcla") {
+          listaMez.push(doc.data());
         }
       });
       setEqFermentacion(listaEq);
       setlistaActFerm(listaFerm);
       setlistaActDest(listaDest);
       setlistaActDesh(listaDesh);
+      setlistaActMez(listaMez);
     };
     obtenerDatos();
   };
@@ -46,7 +51,7 @@ function EqFermentacion() {
         En esta sección se muestra la información de los equipos disponibles del
         proceso de Alcohol Carburante.
       </p>
-      <div>
+      <div className="mb-5">
         <Accordion defaultActiveKey="0">
           <Accordion.Item eventKey="0">
             <Accordion.Header>Equipos Fermentación</Accordion.Header>
@@ -102,7 +107,26 @@ function EqFermentacion() {
         ))}
             </Accordion.Body>
           </Accordion.Item>
+          <Accordion.Item eventKey="3">
+            <Accordion.Header>Equipos Mezcla</Accordion.Header>
+            <Accordion.Body className="row row-cols-2 row-cols-lg-2 g-2" >
+            {listaActMez.map((documento) => (
+          <div className="col-6" key={documento.ID}>
+            <ModalEq
+              Tiempo={documento.Tiempo}
+              ID={documento.ID}
+              key={documento.ID}
+              NombreEquipo={documento.NombreEquipo}
+              Capacidad={documento.Capacidad}
+              Estado={documento.Estado}
+              Referencia={documento.Proceso}
+            />
+          </div>
+        ))}
+            </Accordion.Body>
+          </Accordion.Item>
         </Accordion>
+        
       </div>
     </div>
   );

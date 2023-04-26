@@ -31,7 +31,7 @@ function RecetaDestilacion(props) {
         alcohol del 96% de etanol y por la parte inferior la columna se obtiene
         una corriente liquida llamada vinaza.
       </p>
-      <div className="text-center w-50">
+      <div className="text-center w-75">
         <img
           src={ImgDestilacion}
           className="rounded w-100"
@@ -60,7 +60,7 @@ function RecetaDestilacion(props) {
         livianas, las cuales son retiradas del sistema mediante una pequeña
         extracción.
       </p>
-      <p className="ms-3 text-start">
+      <p className="ms-3 text-start mb-3">
         4. Columna rectificadora: Se alimenta con los vapores diluidos de etanol
         que se obtienen de la cima de la columna despojadora para obtener
         alcohol con una concentración del 96% v/v en la cima de la columna. Para

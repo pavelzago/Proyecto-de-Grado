@@ -11,3 +11,41 @@
 .timer{
     font-weight: bold;
 }
+
+.cardEspera{
+    border-left: 4px solid #dd0000;
+}
+
+.cardCompletada{
+    border-left: 4px solid #00bc3f;
+}
+
+.textmodal1{
+    text-align: center;
+    font-size: x-large;
+}
+.textmodal2{
+    text-align: center;
+    color:rgb(186, 189, 202)
+}
+
+.card-up{
+    border: none;
+    border-radius: 8px;
+    box-shadow: -1px 5px 5px 4px rgba(240,240,240,0.73);
+}
+
+.botonrefresh{
+    border: none;
+    color: rgb(60, 60, 60);
+    background-color: transparent;
+}
+
+.botoncronograma{
+    background-color: rgb(233, 233, 233);
+    width: 230px;
+    margin-right: 10px;
+    text-align: center;
+    color: orangered;
+    border-color: rgb(226, 225, 225);
+}
